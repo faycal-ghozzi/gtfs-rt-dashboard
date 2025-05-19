@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
 from gtfs_rt import fetch_trip_updates
+from stops_loader import load_stops
 
 load_dotenv()
 
@@ -24,3 +25,4 @@ def convert_ts_human(ts):
 @app.get("/api/trips")
 def get_gtfs_data():
     entities = fetch_trip_updates(GTFS_RT_URL)
+    stops = load_stops()
