@@ -20,8 +20,18 @@ app.add_middleware(
 
 GTFS_RT_URL = os.getenv("GTFS_RT_URL")
 
+def human_readable_delay(delay):
+    if delay is None or delay == 0:
+            return "on time"
+    elif delay >= 60:
+        return f"{round(delay / 60)} min"
+    else:
+        return f"{delay} sec"
+    
 def convert_ts_human(ts):
-    return datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%H:%M") if ts else None
+    if ts is None:
+        return None
+    return datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%H:%M")
 
 @app.get("/api/trips")
 def get_trip_updates():
@@ -32,12 +42,16 @@ def get_trip_updates():
         updates = []
         for stu in entity.trip_update.stop_time_update:
             stop_info = stops_data.get(stu.stop_id, {})
+            arrival_ts = getattr(stu.arrival, "time", None)
+            departure_ts = getattr(stu.departure, "time", None)
             updates.append({
                 "stop_id": stu.stop_id,
                 "stop_name": stop_info.get("stop_name", ""),
-                "arrival": getattr(stu.arrival, "time", None),
-                "departure": getattr(stu.departure, "time", None),
-                "delay": getattr(stu.arrival, "delay", 0)
+                "arrival": convert_ts_human(arrival_ts),
+                "departure": convert_ts_human(departure_ts),
+                "delay": human_readable_delay(getattr(stu.arrival, "delay", 0)),
+                "stop_lat": stop_info.get("stop_lat"),
+                "stop_lon": stop_info.get("stop_lon")
             })
         results.append({
             "trip_id": entity.trip_update.trip.trip_id,
