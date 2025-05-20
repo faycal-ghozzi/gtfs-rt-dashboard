@@ -1,23 +1,8 @@
 import React from 'react';
 import DataTable from 'react-data-table-component';
 import { DateTime } from 'luxon';
-import { getTripStatus } from '../utils/getTripStatus';
 
-
-const TrainTripTable = ({ trips }) => {
-  const nowParis = DateTime.now().setZone('Europe/Paris');
-
-  const getCurrentStopInfo = (trip) => {
-    for (let stop of trip.stops) {
-      const arrTime = DateTime.fromFormat(stop.arrival || '', 'HH:mm', { zone: 'Europe/Paris' });
-      const depTime = DateTime.fromFormat(stop.departure || '', 'HH:mm', { zone: 'Europe/Paris' });
-
-      if (arrTime.isValid && nowParis < arrTime) return `Approaching ${stop.stop_name}`;
-      if (depTime.isValid && nowParis < depTime) return `At ${stop.stop_name}`;
-    }
-    return 'Completed';
-  };
-
+const HistoryTripTable = ({ trips }) => {
   const columns = [
     {
       name: 'Start Date',
@@ -40,18 +25,25 @@ const TrainTripTable = ({ trips }) => {
       sortable: true,
     },
     {
-      name: 'Status',
-      cell: row => <span className="text-sm">{getTripStatus(row)}</span>,
-      sortable: false,
+      name: 'Duration',
+      selector: row => {
+        const start = DateTime.fromFormat(row.stops[0]?.departure || '', 'HH:mm', { zone: 'Europe/Paris' });
+        const end = DateTime.fromFormat(row.stops.at(-1)?.arrival || '', 'HH:mm', { zone: 'Europe/Paris' });
+        return (start.isValid && end.isValid)
+          ? `${end.diff(start, 'minutes').minutes.toFixed(0)} min`
+          : '-';
+      },
+      sortable: true,
+      right: true,
     },
     {
       name: 'Details',
       cell: row => (
         <button
-          className="text-blue-600 underline hover:text-blue-800"
+          className="text-purple-600 underline hover:text-purple-800"
           onClick={() => handleDetailsClick(row)}
         >
-          View
+          Stats
         </button>
       ),
       ignoreRowClick: true,
@@ -61,7 +53,7 @@ const TrainTripTable = ({ trips }) => {
   ];
 
   const handleDetailsClick = (trip) => {
-    console.log("Trip details:", trip);
+    console.log("Trip history stats:", trip);
   };
 
   return (
@@ -78,4 +70,4 @@ const TrainTripTable = ({ trips }) => {
   );
 };
 
-export default TrainTripTable;
+export default HistoryTripTable;
