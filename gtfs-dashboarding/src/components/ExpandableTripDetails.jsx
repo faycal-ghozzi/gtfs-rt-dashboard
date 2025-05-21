@@ -1,5 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { DateTime } from 'luxon';
+import DelayEvolutionChart from '../charts/DelayEvolutionChart';
+
 
 const ExpandableTripDetails = ({ data, onViewTrip }) => {
   const listRef = useRef(null);
@@ -127,6 +129,10 @@ const ExpandableTripDetails = ({ data, onViewTrip }) => {
           </ul>
         </div>
       </div>
+
+        <div className="mt-6">
+            <DelayEvolutionChart trip={data} />
+        </div>
     </div>
   );
 };
