@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { getTrips } from './utils/api';
+import React, { useState, useEffect } from 'react';
 import TrainTripTable from './components/TrainTripTable';
-import MapView from './components/MapView';
-import StatsPanel from './components/StatsPanel';
 import HistoryTripTable from './components/HistoryTripTable';
+import StatsPanel from './components/StatsPanel';
+import TripMapModal from './modals/TripMapModal';
+import { getTrips } from './utils/api';
 import { filterTrips } from './utils/filterTrips';
 
 const App = () => {
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [currentTrips, setCurrentTrips] = useState([]);
   const [pastTrips, setPastTrips] = useState([]);
+  const [currentView, setCurrentView] = useState('stats'); // "stats" | "current" | "history"
 
   useEffect(() => {
     const fetchTrips = async () => {
@@ -22,34 +23,44 @@ const App = () => {
   }, []);
 
   return (
-    <div className="p-4">
-      <h1 className="text-3xl font-bold mb-4">Tableau de bord des trains SNCF</h1>
-
-      <StatsPanel trips={currentTrips} />
-
-      <select
-        className="mb-4 border p-2 rounded"
-        onChange={(e) =>
-          setSelectedTrip(currentTrips.find(t => t.trip_id === e.target.value))
-        }
-      >
-        <option value="">-- Sélectionnez un trajet --</option>
-        {currentTrips.map((trip) => (
-          <option key={trip.trip_id} value={trip.trip_id}>
-            {trip.trip_id} ({trip.stops[0]?.stop_name} ➝ {trip.stops.at(-1)?.stop_name})
-          </option>
-        ))}
-      </select>
-
-      <MapView trip={selectedTrip} />
-
-      <h2 className="text-2xl font-semibold mt-6 mb-2">🚆 Ongoing Trips</h2>
-      <TrainTripTable trips={currentTrips} />
-
-      <h2 className="text-2xl font-semibold mt-8 mb-2">📈 Trip History</h2>
-      <HistoryTripTable trips={pastTrips} />
+    <div className="min-h-screen w-full bg-gray-100 text-gray-800">
+      <header className="sticky top-0 z-40 bg-white shadow-sm">
+        <nav className="flex items-center justify-between px-8 py-3 border-b">
+          <h1 className="text-xl font-bold text-blue-900">🚆 Tableau de bord des trains SNCF</h1>
+          <div className="flex space-x-4">
+            <button
+              className={`px-4 py-2 rounded-md font-medium ${currentView === 'stats' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+              onClick={() => setCurrentView('stats')}
+            >
+              📊 Statistiques
+            </button>
+            <button
+              className={`px-4 py-2 rounded-md font-medium ${currentView === 'current' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+              onClick={() => setCurrentView('current')}
+            >
+              ⏰ Horaires en cours
+            </button>
+            <button
+              className={`px-4 py-2 rounded-md font-medium ${currentView === 'history' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+              onClick={() => setCurrentView('history')}
+            >
+              🕘 Historique
+            </button>
+          </div>
+        </nav>
+      </header>
+  
+      <main className="w-full px-6 py-6">
+          {currentView === 'stats' && <StatsPanel trips={currentTrips} />}
+          {currentView === 'current' && (
+            <TrainTripTable trips={currentTrips} onViewTrip={setSelectedTrip} />
+          )}
+          {currentView === 'history' && <HistoryTripTable trips={pastTrips} />}
+      </main>
+      {selectedTrip && <TripMapModal trip={selectedTrip} onClose={() => setSelectedTrip(null)} />}
     </div>
   );
+  
 };
 
 export default App;

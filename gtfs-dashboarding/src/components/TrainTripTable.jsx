@@ -1,78 +1,67 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import DataTable from 'react-data-table-component';
 import { DateTime } from 'luxon';
 import { getTripStatus } from '../utils/getTripStatus';
+import ExpandableTripDetails from './ExpandableTripDetails';
 
+const TrainTripTable = ({ trips, onViewTrip }) => {
+  const [search, setSearch] = useState('');
 
-const TrainTripTable = ({ trips }) => {
-  const nowParis = DateTime.now().setZone('Europe/Paris');
-
-  const getCurrentStopInfo = (trip) => {
-    for (let stop of trip.stops) {
-      const arrTime = DateTime.fromFormat(stop.arrival || '', 'HH:mm', { zone: 'Europe/Paris' });
-      const depTime = DateTime.fromFormat(stop.departure || '', 'HH:mm', { zone: 'Europe/Paris' });
-
-      if (arrTime.isValid && nowParis < arrTime) return `Approaching ${stop.stop_name}`;
-      if (depTime.isValid && nowParis < depTime) return `At ${stop.stop_name}`;
-    }
-    return 'Completed';
-  };
+  const filteredTrips = useMemo(() => {
+    if (!search.trim()) return trips;
+    const lower = search.toLowerCase();
+    return trips.filter(trip =>
+      trip.stops.some(stop => stop.stop_name.toLowerCase().includes(lower))
+    );
+  }, [search, trips]);
 
   const columns = [
     {
       name: 'Start Date',
       selector: row => DateTime.fromFormat(row.start_date, 'yyyyLLdd').toFormat('dd/MM/yyyy'),
-      sortable: true,
     },
     {
       name: 'Departure',
       selector: row => row.stops[0]?.departure || '-',
-      sortable: true,
     },
     {
       name: 'Arrival',
       selector: row => row.stops.at(-1)?.arrival || '-',
-      sortable: true,
     },
     {
       name: 'From ➝ To',
-      selector: row => `${row.stops[0]?.stop_name || '-'} ➝ ${row.stops.at(-1)?.stop_name || '-'}`,
-      sortable: true,
+      selector: row =>
+        `${row.stops[0]?.stop_name || '-'} ➝ ${row.stops.at(-1)?.stop_name || '-'}`,
     },
     {
       name: 'Status',
       cell: row => <span className="text-sm">{getTripStatus(row)}</span>,
-      sortable: false,
     },
-    {
-      name: 'Details',
-      cell: row => (
-        <button
-          className="text-blue-600 underline hover:text-blue-800"
-          onClick={() => handleDetailsClick(row)}
-        >
-          View
-        </button>
-      ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-    }
   ];
 
-  const handleDetailsClick = (trip) => {
-    console.log("Trip details:", trip);
-  };
-
   return (
-    <div className="mt-6">
+    <div className="w-full">
+      <div className="flex justify-end mb-2 px-2">
+        <input
+          type="text"
+          placeholder="Search by station..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="border rounded px-3 py-1 text-sm w-72 shadow-sm"
+        />
+      </div>
+
       <DataTable
         columns={columns}
-        data={trips}
+        data={filteredTrips || []}
         pagination
         highlightOnHover
         striped
-        responsive
+        expandableRows
+        expandableRowsComponent={({ data }) => (
+          <ExpandableTripDetails data={data} onViewTrip={onViewTrip} />
+        )}
+        expandOnRowClicked
       />
     </div>
   );

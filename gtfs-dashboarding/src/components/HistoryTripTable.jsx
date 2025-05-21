@@ -1,8 +1,11 @@
 import React from 'react';
 import DataTable from 'react-data-table-component';
 import { DateTime } from 'luxon';
+import { getDelayColorClass } from '../utils/getDelayColor';
+
 
 const HistoryTripTable = ({ trips }) => {
+    console.log({trips})
   const columns = [
     {
       name: 'Start Date',
@@ -37,6 +40,16 @@ const HistoryTripTable = ({ trips }) => {
       right: true,
     },
     {
+        name: 'Delay',
+        selector: row => row.stops[0]?.delay || 'on time',
+        cell: row => (
+          <span className={`text-sm ${getDelayColorClass(row.stops[0]?.delay)}`}>
+            {row.stops[0]?.delay || 'on time'}
+          </span>
+        ),
+        sortable: false,
+      },
+    {
       name: 'Details',
       cell: row => (
         <button
@@ -57,7 +70,7 @@ const HistoryTripTable = ({ trips }) => {
   };
 
   return (
-    <div className="mt-6">
+    <div className="mt-6 w-full">
       <DataTable
         columns={columns}
         data={trips}

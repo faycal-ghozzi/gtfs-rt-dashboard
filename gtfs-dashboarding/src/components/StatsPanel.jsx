@@ -16,8 +16,8 @@ const StatsPanel = ({ trips }) => {
   const avgDelay = delayValues.length ? (totalDelayInSeconds / delayValues.length) : 0;
 
   return (
-    <div className="mb-4 p-4 bg-gray-100 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-2">📊 Trip Statistics</h2>
+    <div className="w-full bg-white rounded shadow p-6">
+        <h2 className="text-xl font-semibold mb-2">📊 Trip Statistics</h2>
       <ul className="list-disc pl-6">
         <li>Total Trips: {totalTrips}</li>
         <li>Total Stops: {totalStops}</li>
