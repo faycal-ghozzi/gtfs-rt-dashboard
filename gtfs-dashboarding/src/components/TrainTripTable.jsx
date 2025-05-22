@@ -17,24 +17,24 @@ const TrainTripTable = ({ trips, onViewTrip }) => {
 
   const columns = [
     {
-      name: 'Start Date',
+      name: 'Date',
       selector: row => DateTime.fromFormat(row.start_date, 'yyyyLLdd').toFormat('dd/MM/yyyy'),
     },
     {
-      name: 'Departure',
+      name: 'Départ prévu',
       selector: row => row.stops[0]?.departure || '-',
     },
     {
-      name: 'Arrival',
+      name: 'Arrivée prévue',
       selector: row => row.stops.at(-1)?.arrival || '-',
     },
     {
-      name: 'From ➝ To',
+      name: 'Trajet',
       selector: row =>
         `${row.stops[0]?.stop_name || '-'} ➝ ${row.stops.at(-1)?.stop_name || '-'}`,
     },
     {
-      name: 'Status',
+      name: 'Statut du train',
       cell: row => <span className="text-sm">{getTripStatus(row)}</span>,
     },
   ];
@@ -44,7 +44,7 @@ const TrainTripTable = ({ trips, onViewTrip }) => {
       <div className="flex justify-end mb-2 px-2">
         <input
           type="text"
-          placeholder="Search by station..."
+          placeholder="Recherche par station..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="border rounded px-3 py-1 text-sm w-72 shadow-sm"

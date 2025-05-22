@@ -3,23 +3,11 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import CustomHeatmapLayer from './CustomHeatmapLayer';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import regions from '../utils/regions';
+import { getRegionFromCoords } from '../utils/regions';
 
-
-const getRegionFromCoords = (lat, lon) => {
-  for (const region of regions) {
-    const { north, south, west, east } = region.bounds;
-    if (lat <= north && lat >= south && lon >= west && lon <= east) {
-      return region.name;
-    }
-  }
-  return "Autres";
-};
-
-const StopHeatMap = ({ trips }) => {
+const StopHeatMap = ({ trips, selectedRegion }) => {
   const [minTrains, setMinTrains] = useState(0);
   const [filterActive, setFilterActive] = useState(false);
-  const [selectedRegion, setSelectedRegion] = useState("Toutes");
 
   const stopData = useMemo(() => {
     const stopCounts = {};
@@ -57,7 +45,7 @@ const StopHeatMap = ({ trips }) => {
   return (
     <div className="w-full bg-white rounded shadow mt-6">
       <div className="px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h2 className="text-lg font-bold">📍 Heatmap des gares desservies</h2>
+        <h2 className="text-lg font-bold">📍 Carte de densité des gares desservies</h2>
 
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           {/* Min Train Filter */}
@@ -82,21 +70,6 @@ const StopHeatMap = ({ trips }) => {
                 }`}
               />
             </button>
-          </div>
-
-          {/* Region Filter */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">Région :</label>
-            <select
-              className="border rounded px-2 py-1 text-sm"
-              value={selectedRegion}
-              onChange={e => setSelectedRegion(e.target.value)}
-            >
-              <option value="Toutes">Toutes</option>
-              {regions.map((r) => (
-                <option key={r.name} value={r.name}>{r.name}</option>
-              ))}
-            </select>
           </div>
         </div>
       </div>

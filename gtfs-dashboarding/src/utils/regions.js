@@ -43,3 +43,12 @@ const regions = [
   
   export default regions;
   
+  export const getRegionFromCoords = (lat, lon) => {
+    for (const region of regions) {
+      const { north, south, west, east } = region.bounds;
+      if (lat <= north && lat >= south && lon >= west && lon <= east) {
+        return region.name;
+      }
+    }
+    return "Autres";
+  };

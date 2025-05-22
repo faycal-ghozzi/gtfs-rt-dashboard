@@ -7,9 +7,9 @@ export const getTripStatus = (trip) => {
     const arr = DateTime.fromFormat(stop.arrival || '', 'HH:mm', { zone: 'Europe/Paris' });
     const dep = DateTime.fromFormat(stop.departure || '', 'HH:mm', { zone: 'Europe/Paris' });
 
-    if (arr.isValid && nowParis < arr) return `Approaching ${stop.stop_name}`;
-    if (dep.isValid && nowParis < dep) return `At ${stop.stop_name}`;
+    if (arr.isValid && nowParis < arr) return `En approche de ${stop.stop_name}`;
+    if (dep.isValid && nowParis < dep) return `À ${stop.stop_name}`;
   }
 
-  return 'Completed';
+  return 'Trajet terminé';
 };

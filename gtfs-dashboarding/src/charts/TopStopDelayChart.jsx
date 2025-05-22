@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label
 } from 'recharts';
@@ -17,25 +17,40 @@ const formatDelay = (mins) => {
 };
 
 const TopStopDelaysChart = ({ data }) => {
-  const maxDelay = Math.max(...data.map(d => d.avg_delay_min));
+  const [sortMode, setSortMode] = useState('desc'); // 'desc' = top delays, 'asc' = least delays
 
-  let yLabelUnit = 'Retard';
+  const chartData = useMemo(() => {
+    if (sortMode === 'desc') return data.top10MostDelayed;
+    return data.top10LeastDelayed;
+  }, [data, sortMode]);
+
+  const maxDelay = Math.max(...chartData.map(d => d.avg_delay_min));
   const yTickFormatter = (value) => {
     if (maxDelay >= 60) {
       const hours = Math.floor(value / 60);
       const minutes = value % 60;
       return hours > 0 ? `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}` : `${minutes}m`;
-    } else {
-      return `${value}m`;
     }
+    return `${value}m`;
   };
 
   return (
-    <div className="bg-white p-4 rounded shadow">
-      <h2 className="text-lg font-bold mb-2">🚉 Top Stop Delays</h2>
-      <ResponsiveContainer width="100%" height={420}>
+    <div className="bg-white p-4 rounded shadow my-6">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-lg font-bold">🚉 Classement des Gares par Retards</h2>
+        <button
+          className="px-3 py-1 rounded bg-gray-200 text-sm font-medium text-gray-800 hover:bg-gray-300"
+          onClick={() =>
+            setSortMode((prev) => (prev === 'asc' ? 'desc' : 'asc'))
+          }
+        >
+          Trier : {sortMode === 'asc' ? 'Croissant ↑' : 'Décroissant ↓'}
+        </button>
+      </div>
+
+      <ResponsiveContainer width="100%" height={350}>
         <BarChart
-          data={data}
+          data={chartData}
           margin={{ top: 20, right: 20, bottom: 80, left: 60 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
@@ -50,7 +65,7 @@ const TopStopDelaysChart = ({ data }) => {
           </XAxis>
           <YAxis tickFormatter={yTickFormatter}>
             <Label
-              value={yLabelUnit}
+              value="Retard"
               angle={-90}
               position="insideLeft"
               offset={-10}
@@ -59,7 +74,7 @@ const TopStopDelaysChart = ({ data }) => {
           </YAxis>
           <Tooltip
             formatter={(value) => [formatDelay(value), 'Retard']}
-            labelFormatter={(label) => `Station: ${label}`}
+            labelFormatter={(label) => `Station : ${label}`}
           />
           <Bar dataKey="avg_delay_min" fill="#8884d8" />
         </BarChart>
