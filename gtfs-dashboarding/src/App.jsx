@@ -12,16 +12,34 @@ const App = () => {
   const [pastTrips, setPastTrips] = useState([]);
   const [currentView, setCurrentView] = useState('stats');
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchTrips = async () => {
-      const data = await getTrips();
-      const { currentTrips, pastTrips } = filterTrips(data);
-      setCurrentTrips(currentTrips);
-      setPastTrips(pastTrips);
-      setLoading(false);
+      try {
+        const data = await getTrips();
+        if (isMounted) {
+          const { currentTrips, pastTrips } = filterTrips(data);
+          setCurrentTrips(currentTrips);
+          setPastTrips(pastTrips);
+          setLoading(false);
+          setLastUpdated(new Date().toLocaleTimeString());
+        }
+      } catch (err) {
+        console.error("Failed to fetch trips:", err);
+      }
     };
+
     fetchTrips();
+
+    const interval = setInterval(fetchTrips, 30000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   if (loading) {
@@ -64,6 +82,10 @@ const App = () => {
       </header>
 
       <main className="w-full px-6 py-6">
+        <div className="flex justify-end text-sm text-gray-500 mb-2">
+          {lastUpdated && `Dernière mise à jour : ${lastUpdated}`}
+        </div>
+
         {currentView === 'stats' && <StatsPanel trips={currentTrips} />}
         {currentView === 'current' && (
           <TrainTripTable trips={currentTrips} onViewTrip={setSelectedTrip} />

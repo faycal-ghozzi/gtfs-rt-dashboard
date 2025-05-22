@@ -62,7 +62,8 @@ def get_trip_updates():
                 "departure": convert_ts_human(departure_ts),
                 "delay": human_readable_delay(getattr(stu.arrival, "delay", 0)),
                 "stop_lat": stop_info.get("stop_lat") if stop_info else None,
-                "stop_lon": stop_info.get("stop_lon") if stop_info else None
+                "stop_lon": stop_info.get("stop_lon") if stop_info else None,
+                "voyageurs": stop_info.get("voyageurs") if stop_info else None
             })
 
         results.append({

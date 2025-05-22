@@ -6,10 +6,11 @@ def load_gares(file_path='data/liste-des-gares.csv'):
         reader = csv.DictReader(csvfile, delimiter=';')
         for row in reader:
             code_uic = row['CODE_UIC'].strip()
+            print(row['VOYAGEURS'])
             gares[code_uic] = {
                 "stop_name": row['LIBELLE'].strip(),
                 "stop_lat": float(row['Y_WGS84']),
-                "stop_lon": float(row['X_WGS84'])
+                "stop_lon": float(row['X_WGS84']),
             }
     return gares
 
