@@ -57,38 +57,38 @@ const StatsPanel = ({ trips, pastTrips }) => {
 
   const delayDataForChart = useMemo(() => {
     const stopMap = {};
-  
+
     filteredTrips.forEach(trip => {
       trip.stops.forEach(stop => {
         const name = stop.stop_name || 'Inconnu';
-        const delay = parseDelayToSeconds(stop.delay) / 60; 
-  
+        const delay = parseDelayToSeconds(stop.delay) / 60;
+
         if (!stopMap[name]) {
           stopMap[name] = { stop_name: name, totalDelay: 0, count: 0 };
         }
-  
+
         stopMap[name].totalDelay += delay;
         stopMap[name].count += 1;
       });
     });
-  
+
     const result = Object.values(stopMap).map(({ stop_name, totalDelay, count }) => ({
       stop_name,
       avg_delay_min: +(totalDelay / count).toFixed(1),
     }));
-  
+
     const top10MostDelayed = [...result]
       .sort((a, b) => b.avg_delay_min - a.avg_delay_min)
       .slice(0, 10);
-  
+
     const top10LeastDelayed = [...result]
       .sort((a, b) => a.avg_delay_min - b.avg_delay_min)
       .slice(0, 10);
-  
+
     return { top10MostDelayed, top10LeastDelayed };
   }, [filteredTrips]);
-  
-  
+
+
 
   const totalTrips = filteredTrips.length;
   const allStops = useMemo(() => filteredTrips.flatMap(t => t.stops), [filteredTrips]);

@@ -10,7 +10,7 @@ const CustomHeatmapLayer = ({ points, maxIntensity }) => {
       radius: 25,
       blur: 15,
       maxZoom: 10,
-      max: maxIntensity, // Normalize across global max
+      max: maxIntensity,
       gradient: {
         0.2: 'blue',
         0.4: 'lime',

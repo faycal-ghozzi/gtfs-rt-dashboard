@@ -16,12 +16,12 @@ const App = () => {
 
   useEffect(() => {
     let isMounted = true;
-  
+
     const fetchTrips = async () => {
       try {
         const liveData = await getTrips();
         const historyData = await getHistory();
-  
+
         if (isMounted) {
           setCurrentTrips(filterTrips(liveData));
           setPastTrips(filterTrips(historyData, true));
@@ -32,11 +32,11 @@ const App = () => {
         console.error("Failed to fetch trips:", err);
       }
     };
-  
+
     fetchTrips();
-  
+
     const interval = setInterval(fetchTrips, 30000);
-  
+
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -87,11 +87,11 @@ const App = () => {
           {lastUpdated && `Dernière mise à jour : ${lastUpdated}`}
         </div>
 
-        {currentView === 'stats' && <StatsPanel trips={currentTrips} pastTrips={pastTrips}/>}
+        {currentView === 'stats' && <StatsPanel trips={currentTrips} pastTrips={pastTrips} />}
         {currentView === 'current' && (
           <TrainTripTable trips={currentTrips} onViewTrip={setSelectedTrip} />
         )}
-        {currentView === 'history' && <HistoryTripTable trips={pastTrips} onViewTrip={setSelectedTrip}/>}
+        {currentView === 'history' && <HistoryTripTable trips={pastTrips} onViewTrip={setSelectedTrip} />}
       </main>
 
       {selectedTrip && <TripMapModal trip={selectedTrip} onClose={() => setSelectedTrip(null)} />}
