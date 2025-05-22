@@ -3,7 +3,7 @@ import TrainTripTable from './components/TrainTripTable';
 import HistoryTripTable from './components/HistoryTripTable';
 import StatsPanel from './components/StatsPanel';
 import TripMapModal from './modals/TripMapModal';
-import { getTrips } from './utils/api';
+import { getTrips, getHistory } from './utils/api';
 import { filterTrips } from './utils/filterTrips';
 
 const App = () => {
@@ -16,14 +16,15 @@ const App = () => {
 
   useEffect(() => {
     let isMounted = true;
-
+  
     const fetchTrips = async () => {
       try {
-        const data = await getTrips();
+        const liveData = await getTrips();
+        const historyData = await getHistory();
+  
         if (isMounted) {
-          const { currentTrips, pastTrips } = filterTrips(data);
-          setCurrentTrips(currentTrips);
-          setPastTrips(pastTrips);
+          setCurrentTrips(filterTrips(liveData));
+          setPastTrips(filterTrips(historyData, true));
           setLoading(false);
           setLastUpdated(new Date().toLocaleTimeString());
         }
@@ -31,11 +32,11 @@ const App = () => {
         console.error("Failed to fetch trips:", err);
       }
     };
-
+  
     fetchTrips();
-
+  
     const interval = setInterval(fetchTrips, 30000);
-
+  
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -86,11 +87,11 @@ const App = () => {
           {lastUpdated && `Dernière mise à jour : ${lastUpdated}`}
         </div>
 
-        {currentView === 'stats' && <StatsPanel trips={currentTrips} />}
+        {currentView === 'stats' && <StatsPanel trips={currentTrips} pastTrips={pastTrips}/>}
         {currentView === 'current' && (
           <TrainTripTable trips={currentTrips} onViewTrip={setSelectedTrip} />
         )}
-        {currentView === 'history' && <HistoryTripTable trips={pastTrips} />}
+        {currentView === 'history' && <HistoryTripTable trips={pastTrips} onViewTrip={setSelectedTrip}/>}
       </main>
 
       {selectedTrip && <TripMapModal trip={selectedTrip} onClose={() => setSelectedTrip(null)} />}

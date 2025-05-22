@@ -6,3 +6,8 @@ export const getTrips = async () => {
     const res = await axios.get(API_URL+"/api/trips");
     return res.data;
 }
+
+export const getHistory = async () => {
+    const res = await axios.get(`${API_URL}/api/history`);
+    return res.data;
+  };

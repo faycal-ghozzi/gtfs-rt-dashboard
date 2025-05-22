@@ -19,13 +19,11 @@ const ExpandableTripDetails = ({ data, onViewTrip }) => {
       return time.isValid && time > now;
     });
 
-  // Initial active index
   useEffect(() => {
     const idx = findNextIndex();
     setActiveIndex(idx >= 0 ? idx : stops.length - 1);
   }, [stops]);
 
-  // Scroll to active stop
   useEffect(() => {
     if (listRef.current && activeIndex >= 0) {
       const target = listRef.current.children[activeIndex];
@@ -35,7 +33,6 @@ const ExpandableTripDetails = ({ data, onViewTrip }) => {
     }
   }, [activeIndex]);
 
-  // Countdown logic with auto-advance
   useEffect(() => {
     const interval = setInterval(() => {
       const now = DateTime.now().setZone('Europe/Paris');
@@ -54,7 +51,6 @@ const ExpandableTripDetails = ({ data, onViewTrip }) => {
               name: stop.stop_name,
             });
           } else {
-            // Auto-advance to the next stop
             setCountdown(null);
             if (activeIndex < stops.length - 1) {
               setActiveIndex(prev => prev + 1);

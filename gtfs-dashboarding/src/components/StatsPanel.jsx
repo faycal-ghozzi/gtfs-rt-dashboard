@@ -14,7 +14,7 @@ const parseDelayToSeconds = (delayStr) => {
   return 0;
 };
 
-const StatsPanel = ({ trips }) => {
+const StatsPanel = ({ trips, pastTrips }) => {
   const [selectedRegion, setSelectedRegion] = useState("Toutes");
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef();
@@ -42,13 +42,26 @@ const StatsPanel = ({ trips }) => {
       .filter(trip => trip.stops.length > 0);
   }, [trips, selectedRegion]);
 
+  const filteredPastTrips = useMemo(() => {
+    if (selectedRegion === "Toutes") return pastTrips;
+    return pastTrips
+      .map(trip => {
+        const filteredStops = trip.stops.filter(stop => {
+          if (!stop.stop_lat || !stop.stop_lon) return false;
+          return getRegionFromCoords(stop.stop_lat, stop.stop_lon) === selectedRegion;
+        });
+        return { ...trip, stops: filteredStops };
+      })
+      .filter(trip => trip.stops.length > 0);
+  }, [pastTrips, selectedRegion]);
+
   const delayDataForChart = useMemo(() => {
     const stopMap = {};
   
     filteredTrips.forEach(trip => {
       trip.stops.forEach(stop => {
         const name = stop.stop_name || 'Inconnu';
-        const delay = parseDelayToSeconds(stop.delay) / 60; // convert to minutes
+        const delay = parseDelayToSeconds(stop.delay) / 60; 
   
         if (!stopMap[name]) {
           stopMap[name] = { stop_name: name, totalDelay: 0, count: 0 };
@@ -59,13 +72,11 @@ const StatsPanel = ({ trips }) => {
       });
     });
   
-    // Convert map to array with average delay per stop
     const result = Object.values(stopMap).map(({ stop_name, totalDelay, count }) => ({
       stop_name,
       avg_delay_min: +(totalDelay / count).toFixed(1),
     }));
   
-    // Return both top 10 and bottom 10
     const top10MostDelayed = [...result]
       .sort((a, b) => b.avg_delay_min - a.avg_delay_min)
       .slice(0, 10);
@@ -154,15 +165,15 @@ const StatsPanel = ({ trips }) => {
         </div>
       </div>
 
-      {/* 2x2 Chart Grid */}
+      {/* Chart Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <TopStopDelaysChart data={delayDataForChart} />
         <DelayGainLossChart trips={filteredTrips} />
         <DelaysByHourChart trips={filteredTrips} />
-        <DelayPerRegionChart trips={filteredTrips} />
+        <DelayPerRegionChart trips={filteredPastTrips} />
       </div>
 
-      {/* Full-Width Heatmap */}
+      {/* Heatmap */}
       <StopHeatMap trips={filteredTrips} selectedRegion={selectedRegion} />
     </div>
   );

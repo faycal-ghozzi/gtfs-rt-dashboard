@@ -1,83 +1,67 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import DataTable from 'react-data-table-component';
 import { DateTime } from 'luxon';
-import { getDelayColorClass } from '../utils/getDelayColor';
+import { getTripStatus } from '../utils/getTripStatus';
+import ExpandableTripDetails from './ExpandableTripDetails';
 
+const HistoryTripTable = ({ trips, onViewTrip }) => {
+  const [search, setSearch] = useState('');
 
-const HistoryTripTable = ({ trips }) => {
-    console.log({trips})
+  const filteredTrips = useMemo(() => {
+    if (!search.trim()) return trips;
+    const lower = search.toLowerCase();
+    return trips.filter(trip =>
+      trip.stops.some(stop => stop.stop_name.toLowerCase().includes(lower))
+    );
+  }, [search, trips]);
+
   const columns = [
     {
-      name: 'Start Date',
+      name: 'Date',
       selector: row => DateTime.fromFormat(row.start_date, 'yyyyLLdd').toFormat('dd/MM/yyyy'),
-      sortable: true,
     },
     {
-      name: 'Departure',
+      name: 'Départ prévu',
       selector: row => row.stops[0]?.departure || '-',
-      sortable: true,
     },
     {
-      name: 'Arrival',
+      name: 'Arrivée prévue',
       selector: row => row.stops.at(-1)?.arrival || '-',
-      sortable: true,
     },
     {
-      name: 'From ➝ To',
-      selector: row => `${row.stops[0]?.stop_name || '-'} ➝ ${row.stops.at(-1)?.stop_name || '-'}`,
-      sortable: true,
+      name: 'Trajet',
+      selector: row =>
+        `${row.stops[0]?.stop_name || '-'} ➝ ${row.stops.at(-1)?.stop_name || '-'}`,
     },
     {
-      name: 'Duration',
-      selector: row => {
-        const start = DateTime.fromFormat(row.stops[0]?.departure || '', 'HH:mm', { zone: 'Europe/Paris' });
-        const end = DateTime.fromFormat(row.stops.at(-1)?.arrival || '', 'HH:mm', { zone: 'Europe/Paris' });
-        return (start.isValid && end.isValid)
-          ? `${end.diff(start, 'minutes').minutes.toFixed(0)} min`
-          : '-';
-      },
-      sortable: true,
-      right: true,
+      name: 'Statut du train',
+      cell: row => <span className="text-sm">{getTripStatus(row)}</span>,
     },
-    {
-        name: 'Delay',
-        selector: row => row.stops[0]?.delay || 'on time',
-        cell: row => (
-          <span className={`text-sm ${getDelayColorClass(row.stops[0]?.delay)}`}>
-            {row.stops[0]?.delay || 'on time'}
-          </span>
-        ),
-        sortable: false,
-      },
-    {
-      name: 'Details',
-      cell: row => (
-        <button
-          className="text-purple-600 underline hover:text-purple-800"
-          onClick={() => handleDetailsClick(row)}
-        >
-          Stats
-        </button>
-      ),
-      ignoreRowClick: true,
-      allowOverflow: true,
-      button: true,
-    }
   ];
 
-  const handleDetailsClick = (trip) => {
-    console.log("Trip history stats:", trip);
-  };
-
   return (
-    <div className="mt-6 w-full">
+    <div className="w-full">
+      <div className="flex justify-end mb-2 px-2">
+        <input
+          type="text"
+          placeholder="Recherche par station..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="border rounded px-3 py-1 text-sm w-72 shadow-sm"
+        />
+      </div>
+
       <DataTable
         columns={columns}
-        data={trips}
+        data={filteredTrips || []}
         pagination
         highlightOnHover
         striped
-        responsive
+        expandableRows
+        expandableRowsComponent={({ data }) => (
+          <ExpandableTripDetails data={data} onViewTrip={onViewTrip} />
+        )}
+        expandOnRowClicked
       />
     </div>
   );

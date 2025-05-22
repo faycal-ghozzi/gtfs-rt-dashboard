@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Label
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import regions, { getRegionFromCoords } from '../utils/regions';
 
@@ -10,6 +10,11 @@ const parseDelayToSeconds = (delayStr) => {
   if (delayStr.includes('min')) return parseInt(delayStr) * 60;
   if (delayStr.includes('sec')) return parseInt(delayStr);
   return 0;
+};
+
+const formatDate = (yyyymmdd) => {
+  if (!yyyymmdd || yyyymmdd.length !== 8) return yyyymmdd;
+  return `${yyyymmdd.slice(6)}/${yyyymmdd.slice(4, 6)}/${yyyymmdd.slice(0, 4)}`;
 };
 
 const DelayPerRegionChart = ({ trips }) => {
@@ -34,7 +39,7 @@ const DelayPerRegionChart = ({ trips }) => {
       for (const region in regionDelays) {
         const delays = regionDelays[region];
         const avg = delays.length ? delays.reduce((a, b) => a + b, 0) / delays.length : 0;
-        entry[region] = +(avg / 60).toFixed(1);
+        entry[region] = +(avg / 60).toFixed(1); // convert to minutes
       }
       return entry;
     }).sort((a, b) => a.date.localeCompare(b.date));
@@ -48,8 +53,16 @@ const DelayPerRegionChart = ({ trips }) => {
       <ResponsiveContainer width="100%" height={350}>
         <LineChart data={regionSeries}>
           <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            dataKey="date"
+            tickFormatter={formatDate}
+            label={{ value: "Date", position: "insideBottom", offset: -5 }}
+          />
           <YAxis label={{ value: "Retard moyen (min)", angle: -90, position: "insideLeft" }} />
-          <Tooltip formatter={(v) => [`${v} min`, "Retard moyen"]} />
+          <Tooltip
+            labelFormatter={(label) => `Date : ${formatDate(label)}`}
+            formatter={(v) => [`${v} min`, "Retard moyen"]}
+          />
           <Legend />
           {regionKeys.map((region, i) => (
             <Line
