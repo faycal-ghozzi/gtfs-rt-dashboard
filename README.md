@@ -29,6 +29,5 @@ A real-time dashboard for visualizing live SNCF train trips using GTFS-RT data. 
 ```bash
 git clone https://github.com/faycal-ghozzi/gtfs-rt-dashboard.git
 cd gtfs-rt-dashboard
-docker build -t gtfs-rt-dashboard .
-docker run -p 3000:3000 gtfs-rt-dashboard
+docker compose up --build
 ```
