@@ -41,9 +41,8 @@ const correctCoord = (value) => {
     return parseFloat(value) || 0;
 };
 
-const TripMapModal = ({ trip, onClose }) => {
+const TripMapModal = ({ trip, onClose, darkMode }) => {
     const [stops, setStops] = useState([]);
-
     const now = DateTime.now().setZone('Europe/Paris');
 
     useEffect(() => {
@@ -62,53 +61,50 @@ const TripMapModal = ({ trip, onClose }) => {
     if (!trip || stops.length < 2) return null;
 
     const currentIndex = stops.findIndex((s) => now < s.time);
-    const passed = stops.slice(0, currentIndex);
-    const upcoming = stops.slice(currentIndex);
 
-    const passedCoords = passed.map((s) => [s.stop_lat, s.stop_lon]);
-    const upcomingCoords = upcoming.map((s) => [s.stop_lat, s.stop_lon]);
+    let prev = null;
+    let next = null;
+
+    if (currentIndex === -1) {
+        prev = stops[stops.length - 2];
+        next = stops[stops.length - 1];
+    } else if (currentIndex === 0) {
+        prev = stops[0];
+        next = stops[1];
+    } else {
+        prev = stops[currentIndex - 1];
+        next = stops[currentIndex];
+    }
 
     let trainPosition = null;
-    const occupiedSegment = [];
+    if (prev && next) {
+        const prevTime = prev.time;
+        const nextTime = next.time;
 
-    const isLastStop = currentIndex === stops.length - 1;
-    const shouldRenderRed = currentIndex > 0 || isLastStop;
+        if (prevTime?.isValid && nextTime?.isValid) {
+            const totalDuration = nextTime.diff(prevTime).as('seconds');
+            const elapsed = Math.min(now.diff(prevTime).as('seconds'), totalDuration);
+            const ratio = Math.min(Math.max(elapsed / totalDuration, 0), 1);
 
-    if (shouldRenderRed) {
-        const prev = stops[currentIndex - 1] || stops.at(-2);
-        const next = stops[currentIndex] || stops.at(-1);
-
-        if (prev && next) {
-            occupiedSegment.push([prev.stop_lat, prev.stop_lon], [next.stop_lat, next.stop_lon]);
-
-            const prevTime = prev.time;
-            const nextTime = next.time;
-
-            if (prevTime?.isValid && nextTime?.isValid && nextTime > prevTime) {
-                const totalDuration = nextTime.diff(prevTime).as('seconds');
-                const elapsed = now.diff(prevTime).as('seconds');
-                const ratio = Math.min(Math.max(elapsed / totalDuration, 0), 1);
-
-                const lat = prev.stop_lat + (next.stop_lat - prev.stop_lat) * ratio;
-                const lon = prev.stop_lon + (next.stop_lon - prev.stop_lon) * ratio;
-                trainPosition = [lat, lon];
-            }
+            const lat = prev.stop_lat + (next.stop_lat - prev.stop_lat) * ratio;
+            const lon = prev.stop_lon + (next.stop_lon - prev.stop_lon) * ratio;
+            trainPosition = [lat, lon];
         }
     }
 
-
     return (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-            <div className="relative bg-white w-full max-w-6xl h-[600px] rounded shadow-lg overflow-hidden">
-                <div className="flex justify-between items-center px-4 py-2 bg-gray-100 border-b">
+            <div className="relative bg-white dark:bg-gray-800 w-full max-w-6xl h-[600px] rounded shadow-lg overflow-hidden text-gray-900 dark:text-gray-100">
+                <div className="flex justify-between items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600">
                     <h2 className="text-lg font-semibold">Carte du Trajet</h2>
                     <button
-                        className="text-3xl transform rotate-45 font-bold text-gray-600 hover:text-black"
+                        className="text-3xl transform rotate-45 font-bold text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white"
                         onClick={onClose}
                     >
                         +
                     </button>
                 </div>
+
                 <MapContainer
                     center={trainPosition || [stops[0].stop_lat, stops[0].stop_lon]}
                     zoom={8}
@@ -116,11 +112,15 @@ const TripMapModal = ({ trip, onClose }) => {
                     style={{ height: '500px', width: '100%' }}
                 >
                     <MapAutoFixer />
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <TileLayer
+                        url={
+                            darkMode
+                                ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
+                                : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+                        }
+                    />
 
-                    {passedCoords.length >= 2 && <Polyline positions={passedCoords} color="gray" />}
-                    {upcomingCoords.length >= 2 && <Polyline positions={upcomingCoords} color="blue" />}
-                    {occupiedSegment.length === 2 && <Polyline positions={occupiedSegment} color="red" />}
+                    <Polyline positions={stops.map((s) => [s.stop_lat, s.stop_lon])} color="blue" />
 
                     {stops.map((s, idx) => (
                         <Marker key={idx} position={[s.stop_lat, s.stop_lon]}>

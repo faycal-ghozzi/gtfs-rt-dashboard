@@ -5,7 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getRegionFromCoords } from '../utils/regions';
 
-const StopHeatMap = ({ trips, selectedRegion }) => {
+const StopHeatMap = ({ trips, selectedRegion, darkMode }) => {
   const [minTrains, setMinTrains] = useState(0);
   const [filterActive, setFilterActive] = useState(false);
 
@@ -27,7 +27,6 @@ const StopHeatMap = ({ trips, selectedRegion }) => {
       const [lat, lon] = key.split(',').map(Number);
       const stop_name = stopInfo[key] || 'Unknown';
       const region = getRegionFromCoords(lat, lon);
-
       return { lat, lon, count, stop_name, region };
     });
   }, [trips]);
@@ -43,29 +42,26 @@ const StopHeatMap = ({ trips, selectedRegion }) => {
   const maxCount = useMemo(() => Math.max(...stopData.map(s => s.count)), [stopData]);
 
   return (
-    <div className="w-full bg-white rounded shadow mt-6">
+    <div className="w-full bg-white dark:bg-gray-800 rounded shadow mt-6 text-gray-800 dark:text-gray-100">
       <div className="px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h2 className="text-lg font-bold">📍 Carte de densité des gares desservies</h2>
 
         <div className="flex flex-col sm:flex-row gap-4 items-center">
-          {/* Min Train Filter */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium">Min. trains:</label>
             <input
               type="number"
-              className="border rounded px-2 py-1 w-20"
+              className="border rounded px-2 py-1 w-20 bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-800 dark:text-gray-100"
               value={minTrains}
               onChange={(e) => setMinTrains(Number(e.target.value))}
               min="0"
             />
             <button
               onClick={() => setFilterActive(!filterActive)}
-              className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors duration-300 ${filterActive ? 'bg-blue-600' : 'bg-gray-300'
-                }`}
+              className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors duration-300 ${filterActive ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${filterActive ? 'translate-x-6' : 'translate-x-1'
-                  }`}
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${filterActive ? 'translate-x-6' : 'translate-x-1'}`}
               />
             </button>
           </div>
@@ -76,12 +72,18 @@ const StopHeatMap = ({ trips, selectedRegion }) => {
         <MapContainer center={[47, 2]} zoom={6} style={{ height: "100%", width: "100%" }}>
           <TileLayer
             attribution='&copy; OpenStreetMap contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            url={
+              darkMode
+                ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
+                : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            }
           />
           <CustomHeatmapLayer
             points={filteredStops.map(s => [s.lat, s.lon, s.count])}
             maxIntensity={maxCount}
+            darkMode={darkMode}
           />
+
           {filteredStops.map((s, i) => (
             <Marker
               key={i}

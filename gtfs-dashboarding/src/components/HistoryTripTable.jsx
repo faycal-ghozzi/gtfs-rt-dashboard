@@ -1,129 +1,152 @@
 import React, { useState, useMemo } from 'react';
-import DataTable from 'react-data-table-component';
+import DataTable, { createTheme } from 'react-data-table-component';
 import { DateTime } from 'luxon';
 import { getTripStatus } from '../utils/getTripStatus';
 import ExpandableTripDetails from './ExpandableTripDetails';
 import { getRegionFromCoords } from '../utils/regions';
 import RegionDropdown from './RegionDropdown';
 
-const HistoryTripTable = ({ trips, onViewTrip }) => {
-    const [search, setSearch] = useState('');
-    const [fromDate, setFromDate] = useState('');
-    const [toDate, setToDate] = useState('');
-    const [departureRegion, setDepartureRegion] = useState('Toutes');
-    const [arrivalRegion, setArrivalRegion] = useState('Toutes');
+createTheme('tailwindDark', {
+  text: {
+    primary: '#f3f4f6',
+    secondary: '#9ca3af',
+  },
+  background: {
+    default: '#1f2937',
+  },
+  context: {
+    background: '#374151',
+    text: '#ffffff',
+  },
+  divider: {
+    default: '#4b5563',
+  },
+  action: {
+    button: 'rgba(255,255,255,0.54)',
+    hover: 'rgba(255,255,255,0.08)',
+    disabled: 'rgba(255,255,255,0.12)',
+  },
+}, 'dark');
 
-    const filteredTrips = useMemo(() => {
-        return trips.filter(trip => {
-            const tripDate = DateTime.fromFormat(trip.start_date, 'yyyyLLdd');
+const HistoryTripTable = ({ trips, onViewTrip, darkMode }) => {
+  const [search, setSearch] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [departureRegion, setDepartureRegion] = useState('Toutes');
+  const [arrivalRegion, setArrivalRegion] = useState('Toutes');
 
-            const matchesSearch = !search.trim() || trip.stops.some(stop =>
-                stop.stop_name.toLowerCase().includes(search.toLowerCase())
-            );
+  const filteredTrips = useMemo(() => {
+    return trips.filter(trip => {
+      const tripDate = DateTime.fromFormat(trip.start_date, 'yyyyLLdd');
 
-            const isAfterFrom = !fromDate || tripDate >= DateTime.fromISO(fromDate);
-            const isBeforeTo = !toDate || tripDate <= DateTime.fromISO(toDate);
+      const matchesSearch = !search.trim() || trip.stops.some(stop =>
+        stop.stop_name.toLowerCase().includes(search.toLowerCase())
+      );
 
-            const firstStop = trip.stops[0];
-            const lastStop = trip.stops.at(-1);
+      const isAfterFrom = !fromDate || tripDate >= DateTime.fromISO(fromDate);
+      const isBeforeTo = !toDate || tripDate <= DateTime.fromISO(toDate);
 
-            const depRegion = firstStop?.stop_lat && firstStop?.stop_lon
-                ? getRegionFromCoords(firstStop.stop_lat, firstStop.stop_lon)
-                : null;
+      const firstStop = trip.stops[0];
+      const lastStop = trip.stops.at(-1);
 
-            const arrRegion = lastStop?.stop_lat && lastStop?.stop_lon
-                ? getRegionFromCoords(lastStop.stop_lat, lastStop.stop_lon)
-                : null;
+      const depRegion = firstStop?.stop_lat && firstStop?.stop_lon
+        ? getRegionFromCoords(firstStop.stop_lat, firstStop.stop_lon)
+        : null;
 
-            const matchesDepRegion = departureRegion === 'Toutes' || depRegion === departureRegion;
-            const matchesArrRegion = arrivalRegion === 'Toutes' || arrRegion === arrivalRegion;
+      const arrRegion = lastStop?.stop_lat && lastStop?.stop_lon
+        ? getRegionFromCoords(lastStop.stop_lat, lastStop.stop_lon)
+        : null;
 
-            return matchesSearch && isAfterFrom && isBeforeTo && matchesDepRegion && matchesArrRegion;
-        });
-    }, [search, fromDate, toDate, departureRegion, arrivalRegion, trips]);
+      const matchesDepRegion = departureRegion === 'Toutes' || depRegion === departureRegion;
+      const matchesArrRegion = arrivalRegion === 'Toutes' || arrRegion === arrivalRegion;
 
-    const columns = [
-        {
-            name: 'Date',
-            selector: row => DateTime.fromFormat(row.start_date, 'yyyyLLdd').toFormat('dd/MM/yyyy'),
-        },
-        {
-            name: 'Départ prévu',
-            selector: row => row.stops[0]?.departure || '-',
-        },
-        {
-            name: 'Arrivée prévue',
-            selector: row => row.stops.at(-1)?.arrival || '-',
-        },
-        {
-            name: 'Trajet',
-            selector: row =>
-                `${row.stops[0]?.stop_name || '-'} ➝ ${row.stops.at(-1)?.stop_name || '-'}`,
-        },
-        {
-            name: 'Statut du train',
-            cell: row => <span className="text-sm">{getTripStatus(row)}</span>,
-        },
-    ];
+      return matchesSearch && isAfterFrom && isBeforeTo && matchesDepRegion && matchesArrRegion;
+    });
+  }, [search, fromDate, toDate, departureRegion, arrivalRegion, trips]);
 
-    return (
-        <div className="w-full">
-            <div className="mb-4 space-y-4 px-2">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <input
-                        type="text"
-                        placeholder="Recherche par station..."
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        className="border rounded px-3 py-1 text-sm shadow-sm w-full sm:w-72"
-                    />
+  const columns = [
+    {
+      name: 'Date',
+      selector: row => DateTime.fromFormat(row.start_date, 'yyyyLLdd').toFormat('dd/MM/yyyy'),
+    },
+    {
+      name: 'Départ prévu',
+      selector: row => row.stops[0]?.departure || '-',
+    },
+    {
+      name: 'Arrivée prévue',
+      selector: row => row.stops.at(-1)?.arrival || '-',
+    },
+    {
+      name: 'Trajet',
+      selector: row =>
+        `${row.stops[0]?.stop_name || '-'} ➝ ${row.stops.at(-1)?.stop_name || '-'}`,
+    },
+    {
+      name: 'Statut du train',
+      cell: row => <span className="text-sm">{getTripStatus(row)}</span>,
+    },
+  ];
 
-                    <div className="flex items-center space-x-2">
-                        <label className="text-sm">Du</label>
-                        <input
-                            type="date"
-                            value={fromDate}
-                            onChange={e => setFromDate(e.target.value)}
-                            className="border rounded px-2 py-1 text-sm shadow-sm"
-                        />
-                        <label className="text-sm">au</label>
-                        <input
-                            type="date"
-                            value={toDate}
-                            onChange={e => setToDate(e.target.value)}
-                            className="border rounded px-2 py-1 text-sm shadow-sm"
-                        />
-                    </div>
-                </div>
+  return (
+    <div className="w-full">
+      <div className="mb-4 space-y-4 px-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <input
+            type="text"
+            placeholder="Recherche par station..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="border rounded px-3 py-1 text-sm shadow-sm w-full sm:w-72 bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
+          />
 
-                <div className="flex flex-wrap gap-4">
-                    <RegionDropdown
-                        label="Région de départ"
-                        selectedRegion={departureRegion}
-                        onChange={setDepartureRegion}
-                    />
-                    <RegionDropdown
-                        label="Région d'arrivée"
-                        selectedRegion={arrivalRegion}
-                        onChange={setArrivalRegion}
-                    />
-                </div>
-            </div>
-
-            <DataTable
-                columns={columns}
-                data={filteredTrips || []}
-                pagination
-                highlightOnHover
-                striped
-                expandableRows
-                expandableRowsComponent={({ data }) => (
-                    <ExpandableTripDetails data={data} onViewTrip={onViewTrip} />
-                )}
-                expandOnRowClicked
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-700 dark:text-gray-300">Du</label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={e => setFromDate(e.target.value)}
+              className="border rounded px-2 py-1 text-sm shadow-sm bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
             />
+            <label className="text-sm text-gray-700 dark:text-gray-300">au</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={e => setToDate(e.target.value)}
+              className="border rounded px-2 py-1 text-sm shadow-sm bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
+            />
+          </div>
         </div>
-    );
+
+        <div className="flex flex-wrap gap-4">
+          <RegionDropdown
+            label="Région de départ"
+            selectedRegion={departureRegion}
+            onChange={setDepartureRegion}
+          />
+          <RegionDropdown
+            label="Région d'arrivée"
+            selectedRegion={arrivalRegion}
+            onChange={setArrivalRegion}
+          />
+        </div>
+      </div>
+
+      <DataTable
+        columns={columns}
+        data={filteredTrips || []}
+        pagination
+        highlightOnHover
+        striped
+        theme={darkMode ? 'tailwindDark' : 'default'}
+        expandableRows
+        expandableRowsComponent={({ data }) => (
+          <ExpandableTripDetails data={data} onViewTrip={onViewTrip} darkMode={darkMode} />
+        )}
+        expandOnRowClicked
+      />
+    </div>
+  );
 };
 
 export default HistoryTripTable;

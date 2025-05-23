@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, Cell
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, Cell, Legend
 } from 'recharts';
 
 const parseDelayToSeconds = (delayStr) => {
@@ -11,7 +11,7 @@ const parseDelayToSeconds = (delayStr) => {
     return 0;
 };
 
-const DelayGainLossChart = ({ trips }) => {
+const DelayGainLossChart = ({ trips, darkMode }) => {
     const [filterMode, setFilterMode] = useState('all');
 
     const chartData = useMemo(() => {
@@ -49,25 +49,27 @@ const DelayGainLossChart = ({ trips }) => {
     }, [trips, filterMode]);
 
     return (
-        <div className="bg-white p-4 rounded shadow my-6">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded shadow my-6">
             <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-bold">🔀 Gain / Perte du temps par trajet</h2>
+                <h2 className="text-lg font-bold text-gray-800 dark:text-white">
+                    🔀 Gain / Perte du temps par trajet
+                </h2>
                 <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-gray-600">Afficher :</span>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Afficher :</span>
                     <button
-                        className={`px-3 py-1 rounded text-sm font-medium ${filterMode === 'all' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700'}`}
+                        className={`px-3 py-1 rounded text-sm font-medium ${filterMode === 'all' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'}`}
                         onClick={() => setFilterMode('all')}
                     >
                         Global
                     </button>
                     <button
-                        className={`px-3 py-1 rounded text-sm font-medium ${filterMode === 'gain' ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}`}
+                        className={`px-3 py-1 rounded text-sm font-medium ${filterMode === 'gain' ? 'bg-green-100 text-green-800' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'}`}
                         onClick={() => setFilterMode('gain')}
                     >
                         Gains
                     </button>
                     <button
-                        className={`px-3 py-1 rounded text-sm font-medium ${filterMode === 'loss' ? 'bg-red-100 text-red-800' : 'bg-gray-200 text-gray-700'}`}
+                        className={`px-3 py-1 rounded text-sm font-medium ${filterMode === 'loss' ? 'bg-red-100 text-red-800' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'}`}
                         onClick={() => setFilterMode('loss')}
                     >
                         Pertes
@@ -76,7 +78,7 @@ const DelayGainLossChart = ({ trips }) => {
             </div>
 
             {chartData.length === 0 ? (
-                <div className="flex items-center justify-center h-48 text-gray-500 text-center text-sm italic">
+                <div className="flex items-center justify-center h-48 text-gray-500 dark:text-gray-300 text-center text-sm italic">
                     {filterMode === 'gain'
                         ? "Aucun train n'a réussi à récupérer du temps sur le trajet sélectionné."
                         : filterMode === 'loss'
@@ -84,21 +86,50 @@ const DelayGainLossChart = ({ trips }) => {
                             : "Aucun retard enregistré pour les trajets analysés actuellement."}
                 </div>
             ) : (
+                <div>
                 <ResponsiveContainer width="100%" height={350}>
                     <BarChart data={chartData} margin={{ bottom: 60, left: 20, right: 20 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
+                        <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#6b7280' : '#d1d5db'} />
                         <XAxis
-                            dataKey="name"
-                            tick={{ fontSize: 12, angle: -45, textAnchor: 'end' }}
+                            dataKey=""
+                            tick={({ x, y }) => (
+                                <text
+                                    x={x}
+                                    y={y + 10}
+                                    textAnchor="middle"
+                                    fill={darkMode ? '#ffffff' : '#1f2937'}
+                                    fontSize={8}
+                                >
+                                    
+                                </text>
+                            )}
                             interval={0}
+                            height={30}
+                        />
+                        <YAxis
+                            domain={['dataMin - 5', 'dataMax + 5']}
+                            tick={{ fill: darkMode ? '#ffffff' : '#1f2937' }}
                         >
-                            <Label value="Trajets" offset={55} position="Bottom" />
-                        </XAxis>
-                        <YAxis domain={['dataMin - 5', 'dataMax + 5']}>
-                            <Label value="Δ Temps (min)" angle={-90} position="insideLeft" />
+                            <Label value="Δ Temps (min)" angle={-90} position="insideLeft" fill={darkMode ? '#ffffff' : '#1f2937'} />
                         </YAxis>
                         <Tooltip
-                            formatter={(v) => [`${v} min`, "Δ Temps"]}
+                            contentStyle={{
+                                backgroundColor: darkMode ? '#1f2937' : 'white',
+                                color: darkMode ? '#ffffff' : '#000000',
+                                border: '1px solid #4b5563'
+                            }}
+                            labelStyle={{ color: darkMode ? '#ffffff' : '#000000' }}
+                            formatter={(v, name, props) => {
+                                const isGain = v < 0;
+                                const label = isGain ? 'Gain de temps' : 'Perte de temps';
+                                const value = `${Math.abs(v)} min`;
+                              
+                                return [
+                                  darkMode
+                                    ? <span style={{ color: '#ffffff' }}>{label}: {value}</span>
+                                    : value,
+                                ];
+                              }}
                             labelFormatter={(_, payload) => {
                                 const trip = payload?.[0]?.payload;
                                 return (
@@ -110,7 +141,7 @@ const DelayGainLossChart = ({ trips }) => {
                                 );
                             }}
                         />
-                        <Bar dataKey="net_delay_change" radius={[4, 4, 0, 0]}>
+                        <Bar dataKey="net_delay_change" name="Δ Temps" radius={[4, 4, 0, 0]}>
                             {chartData.map((entry, index) => (
                                 <Cell
                                     key={`cell-${index}`}
@@ -119,9 +150,14 @@ const DelayGainLossChart = ({ trips }) => {
                             ))}
                         </Bar>
                     </BarChart>
+                    
                 </ResponsiveContainer>
+                <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-2">
+  🛈 Survolez un point pour voir les détails du trajet
+</p>
+                </div>
             )}
-
+            
         </div>
     );
 };

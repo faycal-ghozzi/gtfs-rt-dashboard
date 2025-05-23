@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import regions, { getRegionFromCoords } from '../utils/regions';
+import { getRegionFromCoords } from '../utils/regions';
 import DelayGainLossChart from '../charts/DelayGainLossChart';
 import DelayPerRegionChart from '../charts/DelayPerRegionChart';
 import DelaysByHourChart from '../charts/DelaysByHourChart';
 import TopStopDelaysChart from '../charts/TopStopDelayChart';
 import StopHeatMap from '../charts/StopHeatMap';
+import RegionDropdown from './RegionDropdown';
 
 const parseDelayToSeconds = (delayStr) => {
   if (!delayStr || delayStr === 'on time') return 0;
@@ -14,9 +15,8 @@ const parseDelayToSeconds = (delayStr) => {
   return 0;
 };
 
-const StatsPanel = ({ trips, pastTrips }) => {
+const StatsPanel = ({ trips, pastTrips, darkMode }) => {
   const [selectedRegion, setSelectedRegion] = useState("Toutes");
-  const [open, setOpen] = useState(false);
   const dropdownRef = useRef();
 
   useEffect(() => {
@@ -88,8 +88,6 @@ const StatsPanel = ({ trips, pastTrips }) => {
     return { top10MostDelayed, top10LeastDelayed };
   }, [filteredTrips]);
 
-
-
   const totalTrips = filteredTrips.length;
   const allStops = useMemo(() => filteredTrips.flatMap(t => t.stops), [filteredTrips]);
   const totalStops = allStops.length;
@@ -102,61 +100,25 @@ const StatsPanel = ({ trips, pastTrips }) => {
 
   return (
     <div className="space-y-6">
-      {/* Centered Region Dropdown */}
       <div className="flex flex-col items-center mt-4">
-        <label className="text-lg font-semibold text-gray-800 mb-2">Région :</label>
-        <div className="relative inline-block text-left" ref={dropdownRef}>
-          <div>
-            <button
-              type="button"
-              className="inline-flex w-48 justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50"
-              onClick={() => setOpen(!open)}
-              aria-expanded={open}
-              aria-haspopup="true"
-            >
-              {selectedRegion}
-              <svg className="-mr-1 size-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-              </svg>
-            </button>
-          </div>
-
-          {open && (
-            <div className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
-              <div className="py-1">
-                <button
-                  onClick={() => { setSelectedRegion("Toutes"); setOpen(false); }}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  Toutes
-                </button>
-                {regions.map((r) => (
-                  <button
-                    key={r.name}
-                    onClick={() => { setSelectedRegion(r.name); setOpen(false); }}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    {r.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+      <RegionDropdown
+          label="Région"
+          selectedRegion={selectedRegion}
+          onChange={setSelectedRegion}
+        />
       </div>
 
-      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded shadow text-center">
-          <h3 className="text-gray-500 text-sm uppercase">Trains surveillés en temps réel</h3>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded shadow text-center">
+          <h3 className="text-gray-500 dark:text-gray-300 text-sm uppercase">Trains surveillés en temps réel</h3>
           <p className="text-2xl font-semibold text-blue-600">{totalTrips}</p>
         </div>
-        <div className="bg-white p-4 rounded shadow text-center">
-          <h3 className="text-gray-500 text-sm uppercase">Total des arrêts</h3>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded shadow text-center">
+          <h3 className="text-gray-500 dark:text-gray-300 text-sm uppercase">Total des arrêts</h3>
           <p className="text-2xl font-semibold text-green-600">{totalStops}</p>
         </div>
-        <div className="bg-white p-4 rounded shadow text-center">
-          <h3 className="text-gray-500 text-sm uppercase">Retard moyen</h3>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded shadow text-center">
+          <h3 className="text-gray-500 dark:text-gray-300 text-sm uppercase">Retard moyen</h3>
           <p className="text-2xl font-semibold text-red-500">
             {avgDelaySeconds >= 3600
               ? `${Math.floor(avgDelaySeconds / 3600)}h ${Math.round((avgDelaySeconds % 3600) / 60)}min`
@@ -165,16 +127,14 @@ const StatsPanel = ({ trips, pastTrips }) => {
         </div>
       </div>
 
-      {/* Chart Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TopStopDelaysChart data={delayDataForChart} />
-        <DelayGainLossChart trips={filteredTrips} />
-        <DelaysByHourChart trips={filteredTrips} />
-        <DelayPerRegionChart trips={filteredPastTrips} />
+        <TopStopDelaysChart data={delayDataForChart} darkMode={darkMode} />
+        <DelayGainLossChart trips={filteredTrips} darkMode={darkMode} />
+        <DelaysByHourChart trips={filteredTrips} darkMode={darkMode} />
+        <DelayPerRegionChart trips={filteredPastTrips} darkMode={darkMode} />
       </div>
 
-      {/* Heatmap */}
-      <StopHeatMap trips={filteredTrips} selectedRegion={selectedRegion} />
+      <StopHeatMap trips={filteredTrips} selectedRegion={selectedRegion} darkMode={darkMode}/>
     </div>
   );
 };
