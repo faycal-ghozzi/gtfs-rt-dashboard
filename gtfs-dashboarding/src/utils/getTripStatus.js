@@ -1,19 +1,33 @@
 import { DateTime } from "luxon";
 
 export const getTripStatus = (trip) => {
-  const nowParis = DateTime.now().setZone("Europe/Paris");
+  const now = DateTime.now().setZone("Europe/Paris");
+
+  // Parse trip date from yyyyLLdd
+  const tripDate = DateTime.fromFormat(trip.start_date, "yyyyLLdd", {
+    zone: "Europe/Paris",
+  });
+
+  if (!tripDate.isValid) return "Trajet terminé";
 
   for (let stop of trip.stops) {
-    const arr = DateTime.fromFormat(stop.arrival || "", "HH:mm", {
-      zone: "Europe/Paris",
-    });
-    const dep = DateTime.fromFormat(stop.departure || "", "HH:mm", {
-      zone: "Europe/Paris",
-    });
+    if (stop.arrival) {
+      const arr = DateTime.fromFormat(
+        `${trip.start_date} ${stop.arrival}`,
+        "yyyyLLdd HH:mm",
+        { zone: "Europe/Paris" }
+      );
+      if (arr.isValid && now < arr) return `En approche de ${stop.stop_name}`;
+    }
 
-    if (arr.isValid && nowParis < arr)
-      return `En approche de ${stop.stop_name}`;
-    if (dep.isValid && nowParis < dep) return `À ${stop.stop_name}`;
+    if (stop.departure) {
+      const dep = DateTime.fromFormat(
+        `${trip.start_date} ${stop.departure}`,
+        "yyyyLLdd HH:mm",
+        { zone: "Europe/Paris" }
+      );
+      if (dep.isValid && now < dep) return `À ${stop.stop_name}`;
+    }
   }
 
   return "Trajet terminé";

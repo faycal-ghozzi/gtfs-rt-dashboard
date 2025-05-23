@@ -3,7 +3,7 @@ import { DateTime } from "luxon";
 
 export const filterTrips = (trips, past = false) => {
   const now = DateTime.now().setZone("Europe/Paris");
-  const today = now.toFormat("yyyyLLdd");
+  const today = now.startOf("day");
   const currentTime = now.toFormat("HH:mm");
 
   const filtered = [];
@@ -18,10 +18,14 @@ export const filterTrips = (trips, past = false) => {
     if (missingEndpoints) continue;
 
     const status = getTripStatus(trip);
-    const tripDate = trip.start_date;
+
+    // Parse tripDate from yyyyLLdd format
+    const tripDate = DateTime.fromFormat(trip.start_date, "yyyyLLdd", { zone: "Europe/Paris" });
+
+    if (!tripDate.isValid) continue;
 
     const isFutureDate = tripDate > today;
-    const isToday = tripDate === today;
+    const isToday = tripDate.hasSame(today, "day");
     const startsLaterToday = isToday && trip.start_time >= currentTime;
 
     if (past) {
