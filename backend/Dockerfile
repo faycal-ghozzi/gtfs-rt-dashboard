@@ -4,6 +4,11 @@ WORKDIR /app
 
 COPY requirements.txt .
 
+ARG GTFS_RT_URL
+ENV GTFS_RT_URL=$GTFS_RT_URL
+
+
+
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
