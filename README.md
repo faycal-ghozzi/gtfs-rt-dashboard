@@ -1,5 +1,3 @@
-# SNCF gtfs-rt-dashboard
-
 # 🚆 SNCF Real-Time Train Dashboard
 
 A real-time dashboard for visualizing live SNCF train trips using GTFS-RT data. It includes an interactive Leaflet map with animated train icons, current and historical timetable views, and trip statistics.
