@@ -157,7 +157,7 @@ const TripMapModal = ({ trip, onClose, darkMode }) => {
                                 {s.stop_name} <br />
                                 🕒 Arrivée: {s.arrival} <br />
                                 🕒 Départ: {s.departure} <br />
-                                ⏱️ <span className={getDelayColor(s.delay)}>{s.delay}</span>
+                                ⏱️ <span className={getDelayColor(s.delay)}>{s.delay === 'on time' ? 'à l\'heure' : s.delay}</span>
                             </Popup>
                         </Marker>
                     ))}
