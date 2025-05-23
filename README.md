@@ -11,7 +11,6 @@ A real-time dashboard for visualizing live SNCF train trips using GTFS-RT data. 
 - 🗺️ **Interactive map** showing:
   - **Gray** lines for passed segments
   - **Blue** lines for upcoming segments
-  - **Red** line for the current active segment
 - ⏱️ **Real-time countdown** to the next stop.
 - 📊 **Stats panel** for quick analytics.
 - 📅 **History view** for past completed trips.
