@@ -7,26 +7,32 @@ import { getRegionFromCoords } from '../utils/regions';
 import RegionDropdown from './RegionDropdown';
 
 createTheme('tailwindDark', {
-  text: {
-    primary: '#f3f4f6',
-    secondary: '#9ca3af',
-  },
-  background: {
-    default: '#1f2937',
-  },
-  context: {
-    background: '#374151',
-    text: '#ffffff',
-  },
-  divider: {
-    default: '#4b5563',
-  },
+  text: { primary: '#f3f4f6', secondary: '#9ca3af' },
+  background: { default: '#1f2937' },
+  context: { background: '#374151', text: '#ffffff' },
+  divider: { default: '#4b5563' },
   action: {
     button: 'rgba(255,255,255,0.54)',
     hover: 'rgba(255,255,255,0.08)',
     disabled: 'rgba(255,255,255,0.12)',
   },
 }, 'dark');
+
+// Parse delay strings to numeric minutes
+const parseDelayMinutes = (delayStr) => {
+  if (!delayStr || delayStr === 'on time') return 0;
+  if (delayStr.includes('h')) {
+    const parts = delayStr.split(' ').filter(Boolean);
+    const hours = parseInt(parts[0], 10);
+    const minutes = parts[1]?.includes('min') ? parseInt(parts[1], 10) : 0;
+    return (isNaN(hours) ? 0 : hours * 60) + (isNaN(minutes) ? 0 : minutes);
+  }
+  if (delayStr.includes('min')) {
+    const minutes = parseInt(delayStr, 10);
+    return isNaN(minutes) ? 0 : minutes;
+  }
+  return 0;
+};
 
 const HistoryTripTable = ({ trips, onViewTrip, darkMode }) => {
   const [search, setSearch] = useState('');
@@ -68,23 +74,74 @@ const HistoryTripTable = ({ trips, onViewTrip, darkMode }) => {
     {
       name: 'Date',
       selector: row => DateTime.fromFormat(row.start_date, 'yyyyLLdd').toFormat('dd/MM/yyyy'),
+      sortable: true,
     },
     {
-      name: 'Départ prévu',
+      name: 'Départ',
+      selector: row => row.stops[0]?.stop_name || '-',
+      sortable: true,
+    },
+    {
+      name: 'Heure Départ',
       selector: row => row.stops[0]?.departure || '-',
+      sortable: true,
     },
     {
-      name: 'Arrivée prévue',
+      name: 'Arrivée',
+      selector: row => row.stops.at(-1)?.stop_name || '-',
+      sortable: true,
+    },
+    {
+      name: 'Heure Arrivée',
       selector: row => row.stops.at(-1)?.arrival || '-',
+      sortable: true,
     },
     {
-      name: 'Trajet',
-      selector: row =>
-        `${row.stops[0]?.stop_name || '-'} ➝ ${row.stops.at(-1)?.stop_name || '-'}`,
+      name: 'Statut',
+      cell: row => <span className="text-sm">Terminé</span>,
     },
     {
-      name: 'Statut du train',
-      cell: row => <span className="text-sm">{getTripStatus(row)}</span>,
+      name: 'Retard',
+      selector: row => parseDelayMinutes(row.stops.at(-1)?.delay),
+      format: row => {
+        const delay = row.stops.at(-1)?.delay;
+        return delay === 'on time' ? "à l'heure" : delay || '—';
+      },
+      sortable: true,
+      right: true,
+    },
+  ];
+
+  const conditionalRowStyles = [
+    {
+      when: row => {
+        const delay = parseDelayMinutes(row.stops.at(-1)?.delay);
+        return delay >= 2 && delay < 10;
+      },
+      style: {
+        backgroundColor: darkMode ? '#fef3c7' : '#fff9db',
+        color: darkMode ? '#1f2937' : '#111827',
+      },
+    },
+    {
+      when: row => {
+        const delay = parseDelayMinutes(row.stops.at(-1)?.delay);
+        return delay >= 10 && delay < 30;
+      },
+      style: {
+        backgroundColor: darkMode ? '#fde68a' : '#ffedd5',
+        color: darkMode ? '#1f2937' : '#111827',
+      },
+    },
+    {
+      when: row => {
+        const delay = parseDelayMinutes(row.stops.at(-1)?.delay);
+        return delay >= 30;
+      },
+      style: {
+        backgroundColor: darkMode ? '#fecaca' : '#fee2e2',
+        color: darkMode ? '#1f2937' : '#111827',
+      },
     },
   ];
 
@@ -99,7 +156,6 @@ const HistoryTripTable = ({ trips, onViewTrip, darkMode }) => {
             onChange={e => setSearch(e.target.value)}
             className="border rounded px-3 py-1 text-sm shadow-sm w-full sm:w-72 bg-white dark:bg-gray-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
           />
-
           <div className="flex items-center space-x-2">
             <label className="text-sm text-gray-700 dark:text-gray-300">Du</label>
             <input
@@ -141,9 +197,10 @@ const HistoryTripTable = ({ trips, onViewTrip, darkMode }) => {
         theme={darkMode ? 'tailwindDark' : 'default'}
         expandableRows
         expandableRowsComponent={({ data }) => (
-          <ExpandableTripDetails data={data} onViewTrip={onViewTrip} darkMode={darkMode} />
+          <ExpandableTripDetails data={data} onViewTrip={onViewTrip} darkMode={darkMode} isHistory={true}/>
         )}
         expandOnRowClicked
+        conditionalRowStyles={conditionalRowStyles}
       />
     </div>
   );

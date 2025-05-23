@@ -2,10 +2,22 @@ import React, { useRef, useEffect, useState } from 'react';
 import { DateTime } from 'luxon';
 import DelayEvolutionChart from '../charts/DelayEvolutionChart';
 
-const ExpandableTripDetails = ({ data, onViewTrip, darkMode }) => {
-  const listRef = useRef(null);
+const LoadingDots = () => (
+  <div className="flex justify-center items-center h-full">
+    <div className="flex space-x-2">
+      <span className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></span>
+      <span className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+      <span className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+    </div>
+  </div>
+);
+
+const ExpandableTripDetails = ({ data, onViewTrip, darkMode, isHistory = false }) => {
+    const listRef = useRef(null);
   const [countdown, setCountdown] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [loading, setLoading] = useState(true); 
+  const [componentLoading, setComponentLoading] = useState(true); 
 
   const stops = data?.stops || [];
   const now = DateTime.now().setZone('Europe/Paris');
@@ -33,6 +45,12 @@ const ExpandableTripDetails = ({ data, onViewTrip, darkMode }) => {
   }, [activeIndex]);
 
   useEffect(() => {
+    if (isHistory) {
+      setComponentLoading(false); // immediately show content
+      return;
+    }
+  
+    setLoading(true);
     const interval = setInterval(() => {
       const now = DateTime.now().setZone('Europe/Paris');
       const stop = stops[activeIndex];
@@ -49,8 +67,11 @@ const ExpandableTripDetails = ({ data, onViewTrip, darkMode }) => {
               seconds: Math.floor(diff.seconds),
               name: stop.stop_name,
             });
+            setLoading(false);
+            setComponentLoading(false);
           } else {
             setCountdown(null);
+            setLoading(false);
             if (activeIndex < stops.length - 1) {
               setActiveIndex(prev => prev + 1);
             }
@@ -58,14 +79,13 @@ const ExpandableTripDetails = ({ data, onViewTrip, darkMode }) => {
         }
       }
     }, 1000);
+  
     return () => clearInterval(interval);
-  }, [activeIndex, stops]);
+  }, [activeIndex, stops, isHistory]);
 
   const renderStopTime = (stop, index) => {
     const isFirst = index === 0;
-    const isLast = index === stops.length - 1;
-    if (isFirst) return stop.departure || '—';
-    return stop.arrival || '—';
+    return isFirst ? stop.departure || '—' : stop.arrival || '—';
   };
 
   const isPastStop = (stop, index) => {
@@ -77,28 +97,38 @@ const ExpandableTripDetails = ({ data, onViewTrip, darkMode }) => {
     return time.isValid && time < DateTime.now().setZone('Europe/Paris');
   };
 
+  if (componentLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <LoadingDots />
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
-      {activeIndex >= 0 && activeIndex < stops.length && (
+      {!isHistory && activeIndex >= 0 && activeIndex < stops.length && (
         <div className="flex items-center justify-between mb-4">
-          <div>
+            <div>
             <h4 className="font-semibold text-lg mb-1">
-              Next Stop: {countdown?.name || stops[activeIndex]?.stop_name}
+                Next Stop: {countdown?.name || stops[activeIndex]?.stop_name}
             </h4>
-            {countdown && (
-              <p className="text-gray-600 dark:text-gray-300">
+            {loading ? (
+                <LoadingDots />
+            ) : countdown ? (
+                <p className="text-gray-600 dark:text-gray-300">
                 Arriving in {countdown.minutes} min {countdown.seconds} sec
-              </p>
-            )}
-          </div>
-          <button
+                </p>
+            ) : null}
+            </div>
+            <button
             onClick={() => onViewTrip(data)}
             className="ml-4 px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
-          >
-            Show on Map
-          </button>
+            >
+            Afficher Carte
+            </button>
         </div>
-      )}
+        )}
 
       <div className="w-full overflow-x-auto">
         <div className="max-w-full">
@@ -125,7 +155,7 @@ const ExpandableTripDetails = ({ data, onViewTrip, darkMode }) => {
       </div>
 
       <div className="mt-6">
-        <DelayEvolutionChart trip={data} darkMode={darkMode}/>
+        <DelayEvolutionChart trip={data} darkMode={darkMode} />
       </div>
     </div>
   );
