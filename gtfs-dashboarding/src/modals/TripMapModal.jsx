@@ -62,6 +62,29 @@ const TripMapModal = ({ trip, onClose, darkMode }) => {
 
     const currentIndex = stops.findIndex((s) => now < s.time);
 
+    const passedCoords =
+        currentIndex === -1
+            ? stops.map((s) => [s.stop_lat, s.stop_lon])
+            : currentIndex > 0
+                ? stops.slice(0, currentIndex).map((s) => [s.stop_lat, s.stop_lon])
+                : [];
+
+    let upcomingCoords = [];
+
+    if (currentIndex === -1) {
+        // Trip is over; show last leg
+        const lastTwo = stops.slice(-2);
+        if (lastTwo.length === 2) {
+            upcomingCoords = lastTwo.map((s) => [s.stop_lat, s.stop_lon]);
+        }
+    } else {
+        // Trip is ongoing
+        const sliced = stops.slice(currentIndex > 0 ? currentIndex - 1 : 0);
+        if (sliced.length > 1) {
+            upcomingCoords = sliced.map((s) => [s.stop_lat, s.stop_lon]);
+        }
+    }
+
     let prev = null;
     let next = null;
 
@@ -120,7 +143,13 @@ const TripMapModal = ({ trip, onClose, darkMode }) => {
                         }
                     />
 
-                    <Polyline positions={stops.map((s) => [s.stop_lat, s.stop_lon])} color="blue" />
+                    {passedCoords.length >= 2 && (
+                        <Polyline positions={passedCoords} color="gray" />
+                    )}
+
+                    {upcomingCoords.length >= 2 && (
+                        <Polyline positions={upcomingCoords} color="blue" />
+                    )}
 
                     {stops.map((s, idx) => (
                         <Marker key={idx} position={[s.stop_lat, s.stop_lon]}>
