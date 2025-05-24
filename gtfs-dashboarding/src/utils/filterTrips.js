@@ -19,7 +19,6 @@ export const filterTrips = (trips, past = false) => {
 
     const status = getTripStatus(trip);
 
-    // Parse tripDate from yyyyLLdd format
     const tripDate = DateTime.fromFormat(trip.start_date, "yyyyLLdd", { zone: "Europe/Paris" });
 
     if (!tripDate.isValid) continue;

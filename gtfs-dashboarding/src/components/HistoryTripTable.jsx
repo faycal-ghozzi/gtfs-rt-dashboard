@@ -18,7 +18,6 @@ createTheme('tailwindDark', {
   },
 }, 'dark');
 
-// Parse delay strings to numeric minutes
 const parseDelayMinutes = (delayStr) => {
   if (!delayStr || delayStr === 'on time') return 0;
   if (delayStr.includes('h')) {

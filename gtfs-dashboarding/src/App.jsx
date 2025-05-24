@@ -11,7 +11,7 @@ const App = () => {
   const [currentTrips, setCurrentTrips] = useState([]);
   const [pastTrips, setPastTrips] = useState([]);
   const [currentView, setCurrentView] = useState('stats');
-  const [initialLoading, setInitialLoading] = useState(true); // updated
+  const [initialLoading, setInitialLoading] = useState(true); 
   const [lastUpdated, setLastUpdated] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -27,7 +27,7 @@ const App = () => {
           setCurrentTrips(filterTrips(liveData));
           setPastTrips(filterTrips(historyData, true));
           setLastUpdated(new Date().toLocaleTimeString());
-          if (isInitial) setInitialLoading(false); // only set loading on first fetch
+          if (isInitial) setInitialLoading(false); 
         }
       } catch (err) {
         console.error("Failed to fetch trips:", err);
@@ -35,9 +35,9 @@ const App = () => {
       }
     };
 
-    fetchTrips(true); // Initial load
+    fetchTrips(true); 
 
-    const interval = setInterval(() => fetchTrips(false), 30000); // Background updates
+    const interval = setInterval(() => fetchTrips(false), 30000); 
 
     return () => {
       isMounted = false;
@@ -81,18 +81,17 @@ const App = () => {
               {['stats', 'current', 'history'].map((view) => (
                 <button
                   key={view}
-                  className={`px-4 py-2 rounded-md font-medium ${
-                    currentView === view
+                  className={`px-4 py-2 rounded-md font-medium ${currentView === view
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100'
-                  }`}
+                    }`}
                   onClick={() => setCurrentView(view)}
                 >
                   {view === 'stats'
                     ? '📊 Statistiques'
                     : view === 'current'
-                    ? '⏰ Horaires en cours'
-                    : '🕘 Historique'}
+                      ? '⏰ Horaires en cours'
+                      : '🕘 Historique'}
                 </button>
               ))}
             </div>
@@ -111,7 +110,12 @@ const App = () => {
           {currentView === 'history' && <HistoryTripTable trips={pastTrips} onViewTrip={setSelectedTrip} darkMode={darkMode} />}
         </main>
 
-        {selectedTrip && <TripMapModal trip={selectedTrip} onClose={() => setSelectedTrip(null)} darkMode={darkMode}/>}
+        {selectedTrip && <TripMapModal trip={selectedTrip} onClose={() => setSelectedTrip(null)} darkMode={darkMode} />}
+
+        <footer className="text-center py-4 text-sm text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
+          Développé par <a href="https://fayghz.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline">Faycal Ghozzi</a>
+        </footer>
+
       </div>
     </div>
   );

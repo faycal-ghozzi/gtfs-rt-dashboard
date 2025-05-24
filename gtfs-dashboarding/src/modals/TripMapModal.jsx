@@ -72,7 +72,7 @@ const TripMapModal = ({ trip, onClose, darkMode }) => {
     let upcomingCoords = [];
 
     if (currentIndex === -1) {
-        // Trip is over; show last leg
+        // Trip is over; show last stations
         const lastTwo = stops.slice(-2);
         if (lastTwo.length === 2) {
             upcomingCoords = lastTwo.map((s) => [s.stop_lat, s.stop_lon]);

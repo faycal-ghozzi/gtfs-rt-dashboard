@@ -3,7 +3,6 @@ import { DateTime } from "luxon";
 export const getTripStatus = (trip) => {
   const now = DateTime.now().setZone("Europe/Paris");
 
-  // Parse trip date from yyyyLLdd
   const tripDate = DateTime.fromFormat(trip.start_date, "yyyyLLdd", {
     zone: "Europe/Paris",
   });
