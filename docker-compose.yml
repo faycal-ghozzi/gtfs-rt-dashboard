@@ -1,9 +1,10 @@
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      args:
+        GTFS_RT_URL: https://proxy.transport.data.gouv.fr/resource/sncf-all-gtfs-rt-trip-updates
     container_name: fastapi-backend
-    env_file:
-      - ./backend/.env
     ports:
       - "8000:8000"
     volumes:
