@@ -88,7 +88,7 @@ const DelaysByHourChart = ({ trips, darkMode }) => {
               labelStyle={{ color: darkMode ? '#ffffff' : '#000000' }}
               formatter={(v) => [`${v} min`, 'Retard moyen']}
             />
-            <Bar dataKey="avg_delay_min" fill={darkMode ? '#60a5fa' : '#82ca9d'} />
+            <Bar dataKey="avg_delay_min" fill={darkMode ? '#60a5fa' : '#82ca9d'} radius={[4, 4, 0, 0]}/>
           </BarChart>
         </ResponsiveContainer>
       )}

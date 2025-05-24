@@ -11,14 +11,14 @@ const App = () => {
   const [currentTrips, setCurrentTrips] = useState([]);
   const [pastTrips, setPastTrips] = useState([]);
   const [currentView, setCurrentView] = useState('stats');
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true); // updated
   const [lastUpdated, setLastUpdated] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchTrips = async () => {
+    const fetchTrips = async (isInitial = false) => {
       try {
         const liveData = await getTrips();
         const historyData = await getHistory();
@@ -26,17 +26,18 @@ const App = () => {
         if (isMounted) {
           setCurrentTrips(filterTrips(liveData));
           setPastTrips(filterTrips(historyData, true));
-          setLoading(false);
           setLastUpdated(new Date().toLocaleTimeString());
+          if (isInitial) setInitialLoading(false); // only set loading on first fetch
         }
       } catch (err) {
         console.error("Failed to fetch trips:", err);
+        if (isInitial && isMounted) setInitialLoading(false);
       }
     };
 
-    fetchTrips();
+    fetchTrips(true); // Initial load
 
-    const interval = setInterval(fetchTrips, 30000);
+    const interval = setInterval(() => fetchTrips(false), 30000); // Background updates
 
     return () => {
       isMounted = false;
@@ -44,7 +45,7 @@ const App = () => {
     };
   }, []);
 
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white dark:bg-gray-900">
         <svg className="animate-spin h-12 w-12 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -65,8 +66,8 @@ const App = () => {
             </h1>
             <div className="flex space-x-4 items-center">
               <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-700 dark:text-gray-300">☀️</span>
-              <label className="relative inline-flex items-center cursor-pointer">
+                <span className="text-sm text-gray-700 dark:text-gray-300">☀️</span>
+                <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     checked={darkMode}

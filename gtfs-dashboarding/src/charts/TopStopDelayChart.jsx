@@ -38,7 +38,7 @@ const TopStopDelaysChart = ({ data, darkMode }) => {
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded shadow my-6">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-bold text-gray-800 dark:text-white">🚉 Classement des Gares par Retards</h2>
+        <h2 className="text-lg font-bold text-gray-800 dark:text-white">🚉 Classement des Gares par Retards (Top 10)</h2>
         <button
           className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 text-sm font-medium text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
           onClick={() => setSortMode((prev) => (prev === 'asc' ? 'desc' : 'asc'))}
@@ -91,7 +91,7 @@ const TopStopDelaysChart = ({ data, darkMode }) => {
               formatter={(value) => [formatDelay(value), 'Retard moyen']}
               labelFormatter={(label) => `Station : ${label}`}
             />
-            <Bar dataKey="avg_delay_min" fill={darkMode ? '#60a5fa' : '#8884d8'} />
+            <Bar dataKey="avg_delay_min" fill={darkMode ? '#60a5fa' : '#8884d8'} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       ) : (
