@@ -98,7 +98,7 @@ const ExpandableTripDetails = ({ data, onViewTrip, darkMode, isHistory = false }
         <div className="flex items-center justify-between mb-4">
           <div>
             <h4 className="font-semibold text-lg mb-1">
-              Arrêt Suivant: {countdown?.name || stops[activeIndex]?.stop_name}
+              Prochain Arrêt : {countdown?.name || stops[activeIndex]?.stop_name}
             </h4>
             <p className="text-gray-600 dark:text-gray-300">
               Arrive dans :
