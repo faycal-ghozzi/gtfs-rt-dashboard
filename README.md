@@ -28,3 +28,5 @@ git clone https://github.com/faycal-ghozzi/gtfs-rt-dashboard.git
 cd gtfs-rt-dashboard
 docker compose up --build
 ```
+
+run the project on [localhost:3000](localhost:3000)
