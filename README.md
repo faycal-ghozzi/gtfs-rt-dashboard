@@ -29,4 +29,7 @@ cd gtfs-rt-dashboard
 docker compose up --build
 ```
 
-run the project on [localhost:3000](localhost:3000)
+run the project on:
+
+[http://localhost:8000](http://localhost:8000)
+
