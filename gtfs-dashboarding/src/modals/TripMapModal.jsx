@@ -11,6 +11,12 @@ import { DateTime } from 'luxon';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: '/marker-icon-2x.png',
+    iconUrl: '/marker-icon.png',
+    shadowUrl: '/marker-shadow.png',
+});
+
 const trainIcon = new L.Icon({
     iconUrl: '/train-icon.png',
     iconSize: [25, 25],
@@ -66,19 +72,17 @@ const TripMapModal = ({ trip, onClose, darkMode }) => {
         currentIndex === -1
             ? stops.map((s) => [s.stop_lat, s.stop_lon])
             : currentIndex > 0
-                ? stops.slice(0, currentIndex).map((s) => [s.stop_lat, s.stop_lon])
-                : [];
+            ? stops.slice(0, currentIndex).map((s) => [s.stop_lat, s.stop_lon])
+            : [];
 
     let upcomingCoords = [];
 
     if (currentIndex === -1) {
-        // Trip is over; show last stations
         const lastTwo = stops.slice(-2);
         if (lastTwo.length === 2) {
             upcomingCoords = lastTwo.map((s) => [s.stop_lat, s.stop_lon]);
         }
     } else {
-        // Trip is ongoing
         const sliced = stops.slice(currentIndex > 0 ? currentIndex - 1 : 0);
         if (sliced.length > 1) {
             upcomingCoords = sliced.map((s) => [s.stop_lat, s.stop_lon]);
@@ -141,6 +145,7 @@ const TripMapModal = ({ trip, onClose, darkMode }) => {
                                 ? 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'
                                 : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
                         }
+                        attribution="&copy; OpenStreetMap contributors"
                     />
 
                     {passedCoords.length >= 2 && (
@@ -157,7 +162,10 @@ const TripMapModal = ({ trip, onClose, darkMode }) => {
                                 {s.stop_name} <br />
                                 🕒 Arrivée: {s.arrival} <br />
                                 🕒 Départ: {s.departure} <br />
-                                ⏱️ <span className={getDelayColor(s.delay)}>{s.delay === 'on time' ? 'à l\'heure' : s.delay}</span>
+                                ⏱️{' '}
+                                <span className={getDelayColor(s.delay)}>
+                                    {s.delay === 'on time' ? 'à l\'heure' : s.delay}
+                                </span>
                             </Popup>
                         </Marker>
                     ))}
